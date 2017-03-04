@@ -1,42 +1,61 @@
 #!/usr/local/bin/python3
 import socketserver, argparse
 
-p = argparse.ArgumentParser(description='Simple server program to\n'
-                                        'send/receive messages, only 100\n'
-                                        'messages can be in queue.')
+p = argparse.ArgumentParser(description='Simple server program to send/receive messages,\n'
+                                        'only 100 messages can be in queue.')
 p.add_argument('-p', '--port', type=int, help='PORT number')
 
-messages = []
+# message container
+
+messages = [None for i in range(10001)]
+counter = 0
 
 
 class MyHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        self.data = str(self.request.recv(1024), 'utf-8')
-        l = [i for i in self.data.split(':' if ':' in self.data else None)]
-        if l[0] == 'get':
-            if len(l) > 1:
-                self.data = messages.pop(int(l[1]))
-                self.data = bytes(self.data + '\n[done]', 'utf-8')
-            else:
-                self.data = messages.pop()
-                self.data = bytes(self.data + '\n[done]', 'utf-8')
+        def get(q):
+            global counter
 
-        if l[0] == 'post':
-            if len(messages) < 100:
-                if len(l) == 2:
-                    messages.append(l[1])
-                    self.data = bytes('[done]', 'utf-8')
-                if len(l) == 3:
-                    messages.insert(int(l[2]), l[1])
-                    self.data = bytes('[done]', 'utf-8')
-        self.request.sendall(self.data)
+            index_m = [i for i in range(len(messages)) if messages[i]]
+            # print(index_m)
+            if len(index_m):
+                if int(q) in index_m:
+                    d = messages[int(q)]
+                    messages[int(q)] = None
+                    counter -= 1
+                    return bytes(d + '\n[done]', 'utf-8')
+                x = min(index_m)
+                d = messages[x]
+                messages[x] = None
+                counter -= 1
+                return bytes(d + '\n[done]', 'utf-8')
+
+        def post(q, po):
+            global counter
+            index_n = [i for i in range(len(messages)) if not messages[i]]
+            # print(index_n[9980:])
+            if counter < 100:
+                messages.insert(int(q), po)
+                messages.pop(max(index_n))
+                counter += 1
+                return bytes('[done]', 'utf-8')
+
+        self.data = str(self.request.recv(1024), 'utf-8').split('|||')
+        print(self.data)
+        if len(self.data) == 1:
+            self.data = get(self.data[0])
+            self.request.sendall(self.data) if self.data else None
+        if len(self.data) == 2:
+            self.data = post(self.data[1], self.data[0])
+            self.request.sendall(self.data) if self.data else None
 
 
 if __name__ == '__main__':
-        if not p.parse_args().port:
-            p.print_help()
-            exit()
-        HOST, PORT = 'localhost', p.parse_args().port
-        s = socketserver.TCPServer((HOST, PORT), MyHandler)
-        print('Serving at port:', PORT)
-        s.serve_forever()
+
+    if not p.parse_args().port:
+        p.print_help()
+        exit()
+    HOST, PORT = 'localhost', p.parse_args().port
+    s = socketserver.TCPServer((HOST, PORT), MyHandler)
+    print("server is up", PORT)
+    s.serve_forever()
