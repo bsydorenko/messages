@@ -8,8 +8,7 @@ p = argparse.ArgumentParser(description='Simple program for sending/receiving me
 p.add_argument('-P', '--PORT', type=int, help='Please enter valid port. port must be 0-65535')
 p.add_argument('-p', '--post', help='Enter message to store/update on server, type [--queue] and digit after message\n'
                                     'to assignqueue number')
-p.add_argument('-g', '--get', action='store_true', help='To get a specific message, type [--queue] and enter the\n'
-                                                        'corresponding number')
+p.add_argument('-g', '--get', action='store_true', help='Get messages')
 p.add_argument('-q', '--queue', help='Queue number. Can be from 0 to 10000.')
 
 
