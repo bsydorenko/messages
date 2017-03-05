@@ -3,9 +3,8 @@ import socketserver, argparse
 
 p = argparse.ArgumentParser(description='Simple server program to send/receive messages,\n'
                                         'only 100 messages can be in queue.')
-p.add_argument('-p', '--port', type=int, help='PORT number')
+p.add_argument('-p', '--port', type=int, help='PORT number. port must be 0-65535')
 
-# message container
 
 messages = [None for i in range(10001)]
 counter = 0
@@ -17,7 +16,6 @@ class MyHandler(socketserver.BaseRequestHandler):
             global counter
 
             index_m = [i for i in range(len(messages)) if messages[i]]
-            # print(index_m)
             if len(index_m):
                 if int(q) in index_m:
                     d = messages[int(q)]
@@ -33,7 +31,6 @@ class MyHandler(socketserver.BaseRequestHandler):
         def post(q, po):
             global counter
             index_n = [i for i in range(len(messages)) if not messages[i]]
-            # print(index_n[9980:])
             if counter < 100:
                 messages.insert(int(q), po)
                 messages.pop(max(index_n))
