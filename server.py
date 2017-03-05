@@ -54,5 +54,5 @@ if __name__ == '__main__':
         exit()
     HOST, PORT = 'localhost', p.parse_args().port
     s = socketserver.TCPServer((HOST, PORT), MyHandler)
-    print("server is up", PORT)
+    print('Serving at: ', PORT)
     s.serve_forever()
